@@ -1,4 +1,5 @@
 global start
+extern long_mode_start
 
 section .text
 bits 32
@@ -13,9 +14,11 @@ start:
     call set_up_page_tables
     call enable_paging
 
-    ; print 'ok' to screen
-    mov dword [0xb8000], 0x2f4b2f4f
-    hlt
+    ; load 64-bit GDT
+    lgdt [gdt64.pointer]
+
+    ; far jump to load new code section in 64 bit mode
+    jmp gdt64.code:long_mode_start
 
 check_long_mode:
     ; test if extended processor info in available
@@ -138,6 +141,15 @@ error:
     mov dword [0xb8008], 0x4f204f20
     mov byte  [0xb800a], al
     hlt
+
+section .rodata
+gdt64:
+    dq 0 ; zero entry
+.code: equ $ - gdt64
+    dq (1<<43) | (1<<44) | (1<<47) | (1<<53)
+.pointer:
+    dw $ - gdt64 - 1
+    dq gdt64
 
 section .bss
 align 4096
