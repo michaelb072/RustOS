@@ -1,11 +1,11 @@
-#![feature(lang_items)]
-#![feature(unique)]
 #![feature(ptr_internals)]
 #![feature(const_fn)]
 #![no_std]
 
 #[macro_use]
 mod vga_buffer;
+
+use core::panic::PanicInfo;
 
 extern crate volatile;
 extern crate spin;
@@ -18,5 +18,7 @@ pub extern fn rust_main() {
     loop{}
 }
 
-#[lang = "eh_personality"] #[no_mangle] pub extern fn eh_personality() {}
-#[lang = "panic_fmt"] #[no_mangle] pub extern fn panic_fmt() -> ! {loop{}}
+#[panic_handler]
+fn panic(_info: &PanicInfo) -> ! {
+    loop {}
+}
